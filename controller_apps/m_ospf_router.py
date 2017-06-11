@@ -306,8 +306,7 @@ def rest_command(func):
     def _rest_command(*args, **kwargs):
         try:
             msg = func(*args, **kwargs)
-            return Response(content_type='application/json',
-                            body=json.dumps(msg))
+            return Response(json_body=json.dumps(msg))
 
         except SyntaxError as e:
             status = 400
@@ -1200,7 +1199,7 @@ class VlanRouter(object):
                     self.ofctl.update_routing_group(group_id, group_flg, value)
                     # Add the flow rule to send packets to the group
                     self.ofctl.set_routing_group_flow(cookie, priority, group_id, dl_vlan = self.vlan_id, nw_dst = route.dst_ip, dst_mask = route.netmask, dec_ttl = True)
-                        
+           
 
                     
 #                    self.ofctl.set_routing_flow(cookie, priority, out_port,

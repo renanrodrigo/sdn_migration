@@ -39,6 +39,7 @@ from ryu.lib.packet import arp
 from ryu.lib.packet import ethernet
 from ryu.lib.packet import icmp
 from ryu.lib.packet import ipv4
+from ryu.lib.packet import ospf
 from ryu.lib.packet import packet
 from ryu.lib.packet import tcp
 from ryu.lib.packet import udp
@@ -258,6 +259,14 @@ class RestRouterAPI(app_manager.RyuApp):
                        action='delete_vlan_data',
                        conditions=dict(method=['DELETE']))
 
+        # OSPF related endpoint. No VLANs (yet)
+        path = '/router/ospf/{switch_id}'
+        mapper.connect('router', path, controller=RouterController,
+                       requirements=requirements,
+                       action='set_ospf_data',
+                       conditions=dict(method=['POST']))
+
+
     @set_ev_cls(dpset.EventDP, dpset.DPSET_EV_DISPATCHER)
     def datapath_handler(self, ev):
         if ev.enter:
@@ -406,6 +415,12 @@ class RouterController(ControllerBase):
     def delete_vlan_data(self, req, switch_id, vlan_id, **_kwargs):
         return self._access_router(switch_id, vlan_id,
                                    'delete_data', req)
+
+    # POST /router/{switch_id}
+    @rest_command
+    def set_ospf_data(self, req, switch_id, **_kwargs):
+        return self._access_router(switch_id, vlan_id,
+                                   'set_ospf_data', req)
 
     def _access_router(self, switch_id, vlan_id, func, req):
         rest_message = []
@@ -1199,9 +1214,7 @@ class VlanRouter(object):
                     self.ofctl.update_routing_group(group_id, group_flg, value)
                     # Add the flow rule to send packets to the group
                     self.ofctl.set_routing_group_flow(cookie, priority, group_id, dl_vlan = self.vlan_id, nw_dst = route.dst_ip, dst_mask = route.netmask, dec_ttl = True)
-           
 
-                    
 #                    self.ofctl.set_routing_flow(cookie, priority, out_port,
 #                                                dl_vlan=self.vlan_id,
 #                                                src_mac=dst_mac,

@@ -578,6 +578,19 @@ class Router(dict):
         return {REST_SWITCHID: self.dpid_str,
                 REST_COMMAND_RESULT: msgs}
 
+    def set_ospf_data(self, vlan_id, param, waiters):
+        vlan_routers = self._get_vlan_router(vlan_id)
+        if not vlan_routers:
+            vlan_routers = [self._add_vlan_router(vlan_id)]
+
+        msgs = []
+        for vlan_router in vlan_routers:
+            try:
+                msg = vlan_router.set_ospf_data(param)
+                msgs.append(msg)
+            except ValueError as err_msg:
+                raise err_msg
+
     def packet_in_handler(self, msg):
         pkt = packet.Packet(msg.data)
         # TODO: Packet library convert to string
@@ -723,6 +736,18 @@ class VlanRouter(object):
         except CommandFailure as err_msg:
             msg = {REST_RESULT: REST_NG, REST_DETAILS: str(err_msg)}
             return self._response(msg)
+
+        if details is not None:
+            msg = {REST_RESULT: REST_OK, REST_DETAILS: details}
+            return self._response(msg)
+        else:
+            raise ValueError('Invalid parameter.')
+
+    def set_ospf_data(self, data):
+        details = None
+
+        # TODO: here we go with everything related to the OSPF updating.
+        # TODO: specific methods must be written...
 
         if details is not None:
             msg = {REST_RESULT: REST_OK, REST_DETAILS: details}
